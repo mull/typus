@@ -40,9 +40,9 @@ class Admin::ResourcesController < Admin::BaseController
   end
 
   def new
-    item_params = params.dup
+    item_params = params.slice *fields.keys
     item_params.delete_if { |k, v| !@resource.columns.map(&:name).include?(k) }
-    @item = @resource.new(item_params)
+    @item = @resource.new(item_params, :without_protection => true)
 
     respond_to do |format|
       format.html # new.html.erb
@@ -57,7 +57,8 @@ class Admin::ResourcesController < Admin::BaseController
   #
   def create
     @item = @resource.new
-    @item.assign_attributes(params[@object_name], :as => :admin)
+    attributes = params[@object_name].slice *fields.keys
+    @item.assign_attributes(attributes, :without_protection => true)
 
     set_attributes_on_create
 
@@ -89,10 +90,11 @@ class Admin::ResourcesController < Admin::BaseController
 
   def update
     attributes = params[:attribute] ? { params[:attribute] => nil } : params[@object_name]
+    attributes = attributes.slice *fields.keys
 
     respond_to do |format|
       role = admin_user.is_root? ? :admin : :default
-      if @item.update_attributes(attributes, :as => role)
+      if @item.update_attributes(attributes, :without_protection => true)
         set_attributes_on_update
         format.html { redirect_on_success }
         format.json { render :json => @item }

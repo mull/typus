@@ -19,6 +19,8 @@ module Admin::ResourcesHelper
       klass = resource.constantize
       if (new_link = sidebar_add_new(klass))
         resources[resource] = [new_link]
+      else
+        resources[resource] = []
       end
     end
 
